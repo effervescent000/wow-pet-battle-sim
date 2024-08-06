@@ -1,6 +1,7 @@
 from token import NAME
 from typing import Any
 from openpyxl import load_workbook
+from battle_runner.abilities import AbilityLookup
 from pet_reader.helpers import (
     ABILITY_START,
     BASE_HEALTH,
@@ -15,7 +16,7 @@ from pet_reader.helpers import (
 )
 from pets.db import PetDB
 
-from pets.models import Ability, Pet, PetSpecies
+from pets.models import Pet, PetSpecies, Stats
 
 
 class PetReader:
@@ -51,11 +52,14 @@ class PetReader:
             species = PetSpecies(
                 name=row[NAME],
                 family=row[FAMILY],
-                base_health=row[BASE_HEALTH],
-                base_power=row[BASE_POWER],
-                base_speed=row[BASE_SPEED],
+                base_stats=Stats(
+                    health=row[BASE_HEALTH],
+                    power=row[BASE_POWER],
+                    speed=row[BASE_SPEED],
+                ),
                 abilities=[
-                    Ability(name=x) for x in row[ABILITY_START : ABILITY_START + 5]
+                    AbilityLookup.get(x, None)
+                    for x in row[ABILITY_START : ABILITY_START + 5]
                 ],
             )
             species_list.append(species)
