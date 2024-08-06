@@ -1,4 +1,5 @@
 from enum import Enum
+from functools import total_ordering
 from typing import Callable, Literal
 from pydantic import BaseModel, computed_field, field_validator
 
@@ -41,10 +42,20 @@ class Value(BaseModel):
         return self.base_value + self.scale_factor * power
 
 
+@total_ordering
 class Ability(BaseModel):
     name: str
-    priority: Priority | None
+    priority: Priority
     conditions: list[Callable[["PetInstance", "PetInstance"], bool]] = []
+
+    def __hash__(self) -> int:
+        return hash(self.name)
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, Ability) and self.name == other.name
+
+    def __lt__(self, other: "Ability") -> bool:
+        return self.priority.value < other.priority.value
 
 
 class DamageAbility(Ability):
@@ -133,6 +144,12 @@ class PetInstance(Pet):
             for i in self.active_skills_by_location
         )
 
+    @field_validator("active_skills")
+    def validate_active_skills(cls, v: tuple[int, int, int]) -> tuple[int, int, int]:
+        if not (v[0] == 1 ^ v[0] == 4):
+            raise ValueError("Invalid active skill")
+        return v
+
     @property
     def speed(self) -> float:
         # TODO figure out actual math + include effects of modifiers
@@ -145,8 +162,11 @@ class PetInstance(Pet):
     def clean_modifiers(self) -> None:
         self.modifiers = [mod for mod in self.modifiers if mod.duration > 0]
 
-    @field_validator("active_skills")
-    def validate_active_skills(cls, v: tuple[int, int, int]) -> tuple[int, int, int]:
-        if not (v[0] == 1 ^ v[0] == 4):
-            raise ValueError("Invalid active skill")
-        return v
+    def select_ability(self, target: "PetInstance") -> Ability | None:
+        abilities = sorted(
+            [x for x in self.active_skills if x is not None], reverse=True
+        )
+        for x in abilities:
+            if all(cond(self, target) for cond in x.conditions):
+                return x
+        return None
