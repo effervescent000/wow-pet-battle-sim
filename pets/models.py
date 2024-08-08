@@ -5,7 +5,7 @@ from functools import total_ordering
 from typing import Callable, Literal
 from pydantic import BaseModel, computed_field, field_validator
 
-from battle_runner import abilities as ab
+
 from battle_runner import log_models as battle_models
 
 Families = Literal[
@@ -160,6 +160,8 @@ class PetInstance(Pet):
     @computed_field()
     @property
     def active_skills(self) -> tuple[Ability | None, ...]:
+        from battle_runner import abilities as ab
+
         return tuple(
             ab.AbilityLookup.get(self.species.abilities[i - 1])
             if self.species.abilities[i - 1] is not None
