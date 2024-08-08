@@ -40,4 +40,4 @@ def test_pet_ability_logic() -> None:
         cur_health=100,
         active_skills_by_location=(1, 2, 3),
     )
-    assert pet_instance.select_ability(pet_instance) == AbilityLookup.get("Claw")
+    assert pet_instance.select_ability(pet_instance)[0] == AbilityLookup.get("Claw")

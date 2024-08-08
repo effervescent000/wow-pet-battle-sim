@@ -1,12 +1,12 @@
-from pets import models
+from pets import models as m
 
 
 abilities = [
-    models.DamageAbility(name="Claw", damage_value=models.Value(base_value=20)),
-    models.DamageAbility(
+    m.DamageAbility(name="Claw", damage_value=m.Value(base_value=20)),
+    m.DamageAbility(
         name="FakeTestAbility",
-        damage_value=models.Value(base_value=20),
-        priority=models.Priority.Heal,
+        damage_value=m.Value(base_value=20),
+        priority=m.Priority.Heal,
         conditions=[lambda *args: False],
     ),
 ]

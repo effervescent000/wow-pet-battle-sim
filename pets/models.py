@@ -1,9 +1,12 @@
+from __future__ import annotations
 from enum import Enum
 from functools import total_ordering
+
 from typing import Callable, Literal
 from pydantic import BaseModel, computed_field, field_validator
 
 from battle_runner import abilities as ab
+from battle_runner import log_models as battle_models
 
 Families = Literal[
     "Magic",
@@ -38,7 +41,7 @@ class Value(BaseModel):
     base_value: float
     scale_factor: float = 1
 
-    def calc_value(self, power: int) -> float:
+    def calc_value(self, power: float) -> float:
         return self.base_value + self.scale_factor * power
 
 
@@ -46,6 +49,9 @@ class Value(BaseModel):
 class Ability(BaseModel):
     name: str
     priority: Priority
+    # effects should be callbacks that take the actor and the target
+    # and apply the modifiers as appropriate
+    effects: list[Callable[["PetInstance", "PetInstance"], None]] = []
     conditions: list[Callable[["PetInstance", "PetInstance"], bool]] = []
 
     def __hash__(self) -> int:
@@ -57,17 +63,34 @@ class Ability(BaseModel):
     def __lt__(self, other: "Ability") -> bool:
         return self.priority.value < other.priority.value
 
+    def do_action(
+        self, actor: "PetInstance", target: "PetInstance"
+    ) -> battle_models.BattleEvent:
+        raise NotImplementedError()
+
 
 class DamageAbility(Ability):
     hit_chance: float = 1
     damage_value: Value
     priority: Priority = Priority.DamageOnly
-    # effects should be callbacks that take the actor and the target
-    # and apply the modifiers as appropriate
-    effects: list[Callable[["PetInstance", "PetInstance"], None]] = []
     conditions: list[Callable[["PetInstance", "PetInstance"], bool]] = [
         lambda *args: True
     ]
+
+    def do_action(
+        self, actor: "PetInstance", target: "PetInstance"
+    ) -> battle_models.BattleEvent:
+        damage = self.damage_value.calc_value(actor.power)
+        event = battle_models.BattleEvent(
+            actor=actor.label or actor.species.name,
+            target=target.label or target.species.name,
+            result=[
+                battle_models.DamageOrHealing(
+                    amount=damage, ability=self.name, type="damage"
+                )
+            ],
+        )
+        return event
 
 
 class Stats(BaseModel):
@@ -155,6 +178,11 @@ class PetInstance(Pet):
         # TODO figure out actual math + include effects of modifiers
         return self.species.base_stats.speed * self.level
 
+    @property
+    def power(self) -> float:
+        # TODO figure out actual math + include effects of modifiers
+        return self.species.base_stats.power * self.level
+
     def increment_modifiers(self) -> None:
         for mod in self.modifiers:
             mod.duration -= 1
@@ -162,11 +190,13 @@ class PetInstance(Pet):
     def clean_modifiers(self) -> None:
         self.modifiers = [mod for mod in self.modifiers if mod.duration > 0]
 
-    def select_ability(self, target: "PetInstance") -> Ability | None:
+    def select_ability(
+        self, target: PetInstance
+    ) -> tuple[Ability | None, PetInstance | None]:
         abilities = sorted(
             [x for x in self.active_skills if x is not None], reverse=True
         )
         for x in abilities:
             if all(cond(self, target) for cond in x.conditions):
-                return x
-        return None
+                return (x, target)
+        return (None, None)
