@@ -57,10 +57,7 @@ class PetReader:
                     power=row[BASE_POWER],
                     speed=row[BASE_SPEED],
                 ),
-                abilities=[
-                    AbilityLookup.get(x, None)
-                    for x in row[ABILITY_START : ABILITY_START + 5]
-                ],
+                abilities=[x for x in row[ABILITY_START : ABILITY_START + 5]],
             )
             species_list.append(species)
             if row[COLLECTED] == "Yes" and row[LEVEL] == 25 and row[QUALITY] == "Rare":

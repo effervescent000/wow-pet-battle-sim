@@ -2,7 +2,7 @@ from __future__ import annotations
 from enum import Enum
 from functools import total_ordering
 
-from typing import Callable, Literal
+from typing import Callable, Literal, cast
 from pydantic import BaseModel, computed_field, field_validator
 
 
@@ -103,7 +103,7 @@ class PetSpecies(BaseModel):
     name: str
     family: Families
     base_stats: Stats
-    abilities: list[str]
+    abilities: list[str | None]
 
     def __hash__(self) -> int:
         return hash(self.name)
@@ -163,7 +163,7 @@ class PetInstance(Pet):
         from battle_runner import abilities as ab
 
         return tuple(
-            ab.AbilityLookup.get(self.species.abilities[i - 1])
+            ab.AbilityLookup.get(cast(str, self.species.abilities[i - 1]))
             if self.species.abilities[i - 1] is not None
             else None
             for i in self.active_skills_by_location
@@ -171,7 +171,7 @@ class PetInstance(Pet):
 
     @field_validator("active_skills_by_location")
     def validate_active_skills(cls, v: tuple[int, int, int]) -> tuple[int, int, int]:
-        if not (v[0] == 1 ^ v[0] == 4):
+        if not (bool(v[0] == 1) ^ bool(v[0] == 4)):
             raise ValueError("Invalid active skill")
         return v
 
