@@ -167,7 +167,7 @@ class PetInstance(Pet):
             for i in self.active_skills_by_location
         )
 
-    @field_validator("active_skills")
+    @field_validator("active_skills_by_location")
     def validate_active_skills(cls, v: tuple[int, int, int]) -> tuple[int, int, int]:
         if not (v[0] == 1 ^ v[0] == 4):
             raise ValueError("Invalid active skill")
