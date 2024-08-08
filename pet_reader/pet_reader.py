@@ -1,7 +1,7 @@
 from token import NAME
 from typing import Any
 from openpyxl import load_workbook
-from battle_runner.abilities import AbilityLookup
+
 from pet_reader.helpers import (
     ABILITY_START,
     BASE_HEALTH,

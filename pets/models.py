@@ -81,6 +81,7 @@ class DamageAbility(Ability):
         self, actor: "PetInstance", target: "PetInstance"
     ) -> battle_models.BattleEvent:
         damage = self.damage_value.calc_value(actor.power)
+        target.cur_health -= damage
         event = battle_models.BattleEvent(
             actor=actor.label or actor.species.name,
             target=target.label or target.species.name,
