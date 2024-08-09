@@ -13,6 +13,7 @@ parser = argparse.ArgumentParser(
     description="Find combination of pets to beat a given enemy"
 )
 parser.add_argument("-f", "--family", dest="family")
+parser.add_argument("-r", "--rival", dest="rival")
 args = parser.parse_args()
 team_builder = TeamBuilder(db, args.family)
 team = team_builder.build_team()
