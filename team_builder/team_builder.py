@@ -11,7 +11,86 @@ class TeamBuildingError(Exception):
 class TeamBuilder:
     def __init__(self, db: PetDB, target_family: Families | None = None):
         self.db = db
-        self.target_family = target_family
+        self.target_family = self._process_family(target_family)
+
+    def _process_family(self, family: str | None) -> Families | None:
+        if family is None:
+            return None
+        match family.lower():
+            case "humanoid":
+                return "Humanoid"
+            case "human":
+                return "Humanoid"
+            case "hu":
+                return "Humanoid"
+
+            case "magic":
+                return "Magic"
+            case "mag":
+                return "Magic"
+            case "ma":
+                return "Magic"
+
+            case "aquatic":
+                return "Aquatic"
+            case "aqua":
+                return "Aquatic"
+            case "aq":
+                return "Aquatic"
+            case "water":
+                return "Aquatic"
+
+            case "beast":
+                return "Beast"
+            case "bst":
+                return "Beast"
+            case "b":
+                return "Beast"
+
+            case "dragonkin":
+                return "Dragonkin"
+            case "dragon":
+                return "Dragonkin"
+            case "drg":
+                return "Dragonkin"
+            case "d":
+                return "Dragonkin"
+
+            case "undead":
+                return "Undead"
+            case "und":
+                return "Undead"
+            case "u":
+                return "Undead"
+
+            case "flying":
+                return "Flying"
+            case "fly":
+                return "Flying"
+            case "fl":
+                return "Flying"
+
+            case "critter":
+                return "Critter"
+            case "crt":
+                return "Critter"
+            case "c":
+                return "Critter"
+
+            case "mechanical":
+                return "Mechanical"
+            case "mech":
+                return "Mechanical"
+            case "me":
+                return "Mechanical"
+
+            case "elemental":
+                return "Elemental"
+            case "ele":
+                return "Elemental"
+
+            case _:
+                raise TeamBuildingError(f"Invalid family: {family}")
 
     def _get_available_pets(self) -> list[Pet]:
         available_pets: list[Pet] = []

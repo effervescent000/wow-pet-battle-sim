@@ -6,7 +6,6 @@ Families = Literal[
     "Magic",
     "Beast",
     "Dragonkin",
-    "Human",
     "Undead",
     "Flying",
     "Critter",
