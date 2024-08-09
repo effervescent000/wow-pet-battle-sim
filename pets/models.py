@@ -1,35 +1,12 @@
 from __future__ import annotations
-from enum import Enum
 from functools import total_ordering
 
-from typing import Callable, Literal, cast
+from typing import Callable, cast
 from pydantic import BaseModel, computed_field, field_validator
 
 
 from battle_runner import log_models as battle_models
-
-Families = Literal[
-    "Magic",
-    "Beast",
-    "Dragonkin",
-    "Human",
-    "Undead",
-    "Flying",
-    "Critter",
-    "Humanoid",
-    "Mechanical",
-    "Elemental",
-    "Aquatic",
-]
-
-Breeds = Literal["BB", "PB", "SB", "HB", "PP", "PS", "PH", "SS", "HS", "HH", "HP"]
-
-Quality = Literal["Common", "Uncommon", "Rare", "Epic", "Legendary"]
-
-Priority = Enum(
-    "Priority",
-    ["DamageOnly", "DamageWithModifier", "EnemyModifier", "Heal", "FriendlyModifier"],
-)
+from pets.constants import Breeds, Families, Priority, Quality
 
 
 class Modifier(BaseModel):

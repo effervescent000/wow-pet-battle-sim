@@ -1,4 +1,5 @@
 import random
+from pets.constants import Families
 from pets.db import PetDB
 from pets.models import Pet, PetInstance
 
@@ -8,11 +9,11 @@ class TeamBuildingError(Exception):
 
 
 class TeamBuilder:
-    def __init__(self, db: PetDB, target_family: str | None = None):
+    def __init__(self, db: PetDB, target_family: Families | None = None):
         self.db = db
         self.target_family = target_family
 
-    def build_team(self) -> list[PetInstance]:
+    def _get_available_pets(self) -> list[Pet]:
         available_pets: list[Pet] = []
         if self.target_family:
             available_pets = [
@@ -26,6 +27,9 @@ class TeamBuilder:
         if len(available_pets) < 3:
             raise TeamBuildingError("Not enough pets to build a team")
 
+        return available_pets
+
+    def _choose_pets(self, available_pets: list[Pet]) -> list[PetInstance]:
         chosen_pets: list[PetInstance] = []
         while len(chosen_pets) < 3:
             choice = random.choice(available_pets)
@@ -40,4 +44,9 @@ class TeamBuilder:
             )
             available_pets.remove(choice)
 
+        return chosen_pets
+
+    def build_team(self) -> list[PetInstance]:
+        available_pets = self._get_available_pets()
+        chosen_pets = self._choose_pets(available_pets)
         return chosen_pets

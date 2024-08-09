@@ -1,10 +1,13 @@
+from pets.constants import Families
 from pets.models import PetInstance, PetSpecies, Stats
 
 
-def pet_species_factory() -> PetSpecies:
+def pet_species_factory(
+    name: str | None = None, family: "Families | None" = None
+) -> PetSpecies:
     return PetSpecies(
-        name="Test Pet",
-        family="Humanoid",
+        name=name or "Test Pet",
+        family=family or "Humanoid",
         base_stats=Stats(health=100, power=100, speed=100),
         abilities=[
             "Claw",
