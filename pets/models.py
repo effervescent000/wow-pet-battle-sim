@@ -5,7 +5,7 @@ from typing import Callable, cast
 from pydantic import BaseModel, computed_field, field_validator
 
 
-from battle_runner import log_models as battle_models
+from battle_runner import log_models
 from pets.constants import Breeds, Families, Priority, Quality
 
 
@@ -28,7 +28,9 @@ class Ability(BaseModel):
     priority: Priority
     # effects should be callbacks that take the actor and the target
     # and apply the modifiers as appropriate
-    effects: list[Callable[["PetInstance", "PetInstance"], None]] = []
+    effects: list[
+        Callable[["PetInstance", "PetInstance"], log_models.EffectChange]
+    ] = []
     conditions: list[Callable[["PetInstance", "PetInstance"], bool]] = []
 
     def __hash__(self) -> int:
@@ -42,7 +44,7 @@ class Ability(BaseModel):
 
     def do_action(
         self, actor: "PetInstance", target: "PetInstance"
-    ) -> battle_models.BattleEvent:
+    ) -> log_models.BattleEvent:
         raise NotImplementedError()
 
 
@@ -56,18 +58,32 @@ class DamageAbility(Ability):
 
     def do_action(
         self, actor: "PetInstance", target: "PetInstance"
-    ) -> battle_models.BattleEvent:
+    ) -> log_models.BattleEvent:
         damage = self.damage_value.calc_value(actor.power)
         target.cur_health -= damage
-        event = battle_models.BattleEvent(
+        event = log_models.BattleEvent(
             actor=actor.label or actor.species.name,
             target=target.label or target.species.name,
             result=[
-                battle_models.DamageOrHealing(
+                log_models.DamageOrHealing(
                     amount=damage, ability=self.name, type="damage"
                 )
             ],
         )
+        return event
+
+
+class DamageAbilityWithModifier(DamageAbility):
+    effects: list[Callable[["PetInstance", "PetInstance"], log_models.EffectChange]]
+
+    def do_action(
+        self, actor: "PetInstance", target: "PetInstance"
+    ) -> log_models.BattleEvent:
+        event = super().do_action(actor, target)
+        changes: list[log_models.EffectChange] = []
+        for effect in self.effects:
+            changes.append(effect(actor, target))
+        event.effects = changes
         return event
 
 
