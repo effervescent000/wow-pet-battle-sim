@@ -112,6 +112,12 @@ class PetSpecies(BaseModel):
     def __eq__(self, other: object) -> bool:
         return isinstance(other, PetSpecies) and self.name == other.name
 
+    @field_validator("abilities")
+    def abilities_are_correct_length(cls, v: list[str | None]) -> list[str | None]:
+        if len(v) != 6:
+            raise ValueError("Pet species must have exactly 6 abilities")
+        return v
+
 
 class Pet(BaseModel):
     label: str | None = None

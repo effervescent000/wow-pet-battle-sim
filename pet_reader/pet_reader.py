@@ -28,7 +28,7 @@ class PetReader:
         collection = self._read_collection()
         species, pets = self._make_pets_from_collection(collection)
         self.db.species = species
-        self.db.pets = pets
+        self.db.player_pet_roster = pets
 
     def _read_collection(self) -> list[tuple]:
         wb = load_workbook(self.file_name, read_only=True)
@@ -57,7 +57,7 @@ class PetReader:
                     power=row[BASE_POWER],
                     speed=row[BASE_SPEED],
                 ),
-                abilities=[x for x in row[ABILITY_START : ABILITY_START + 5]],
+                abilities=[x for x in row[ABILITY_START : ABILITY_START + 6]],
             )
             species_list.append(species)
             if row[COLLECTED] == "Yes" and row[LEVEL] == 25 and row[QUALITY] == "Rare":
