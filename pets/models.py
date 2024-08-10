@@ -7,6 +7,7 @@ from pydantic import BaseModel, computed_field, field_validator
 
 from battle_runner import log_models
 from pets.constants import Breeds, Families, Priority, Quality
+from pets.helpers import get_breed_points, get_quality_modifier
 
 
 class Modifier(BaseModel):
@@ -26,6 +27,7 @@ class Value(BaseModel):
 class Ability(BaseModel):
     name: str
     priority: Priority
+    family: Families
     # effects should be callbacks that take the actor and the target
     # and apply the modifiers as appropriate
     effects: list[
@@ -137,8 +139,15 @@ class Pet(BaseModel):
 
     @property
     def max_health(self) -> float:
-        # XXX I don't know what the math for this actually is
-        return self.species.base_stats.health * self.level
+        return (
+            (
+                self.species.base_stats.health
+                + get_breed_points(self.breed, "health") / 10
+            )
+            * 5
+            * self.level
+            * get_quality_modifier(self.quality)
+        ) + 100
 
     def make_instance(self, active_skills: tuple[int, int, int]) -> "PetInstance":
         return PetInstance(
@@ -177,13 +186,21 @@ class PetInstance(Pet):
 
     @property
     def speed(self) -> float:
-        # TODO figure out actual math + include effects of modifiers
-        return self.species.base_stats.speed * self.level
+        # TODO include modifiers
+        return (
+            (self.species.base_stats.speed + get_breed_points(self.breed, "speed") / 10)
+            * self.level
+            * get_quality_modifier(self.quality)
+        )
 
     @property
     def power(self) -> float:
-        # TODO figure out actual math + include effects of modifiers
-        return self.species.base_stats.power * self.level
+        # TODO include modifiers
+        return (
+            (self.species.base_stats.power + get_breed_points(self.breed, "power") / 10)
+            * self.level
+            * get_quality_modifier(self.quality)
+        )
 
     def increment_modifiers(self) -> None:
         for mod in self.modifiers:
