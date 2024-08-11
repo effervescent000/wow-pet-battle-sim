@@ -1,7 +1,7 @@
 from __future__ import annotations
 from functools import total_ordering
 
-from typing import Callable, cast
+from typing import Callable, Literal, cast
 from pydantic import BaseModel, computed_field, field_validator
 
 
@@ -10,9 +10,24 @@ from pets.constants import Breeds, Families, Priority, Quality
 from pets.helpers import get_breed_points, get_quality_modifier
 
 
+class StatModifier(BaseModel):
+    stat: Literal["health", "power", "speed", "damage_out", "damage_in"]
+    value: float
+
+
+class StatAdjustment(StatModifier):
+    """Used for flat bonuses/penalties"""
+
+
+class StatFactor(StatModifier):
+    """Used for multipliers"""
+
+
 class Modifier(BaseModel):
     name: str
     duration: int
+    stat_adjustments: list[StatAdjustment] = []
+    stat_factors: list[StatFactor] = []
 
 
 class Value(BaseModel):
@@ -191,7 +206,8 @@ class PetInstance(Pet):
             (self.species.base_stats.speed + get_breed_points(self.breed, "speed") / 10)
             * self.level
             * get_quality_modifier(self.quality)
-        )
+            + self.get_final_stat_adjustment("speed")
+        ) * self.get_final_stat_factor("speed")
 
     @property
     def power(self) -> float:
@@ -200,6 +216,27 @@ class PetInstance(Pet):
             (self.species.base_stats.power + get_breed_points(self.breed, "power") / 10)
             * self.level
             * get_quality_modifier(self.quality)
+            + self.get_final_stat_adjustment("power")
+        ) * self.get_final_stat_factor("power")
+
+    def get_final_stat_adjustment(
+        self, stat: Literal["health", "power", "speed", "damage_out", "damage_in"]
+    ) -> float:
+        return sum(
+            adj.value
+            for mod in self.modifiers
+            for adj in mod.stat_adjustments
+            if adj.stat == stat
+        )
+
+    def get_final_stat_factor(
+        self, stat: Literal["health", "power", "speed", "damage_out", "damage_in"]
+    ) -> float:
+        return sum(
+            fac.value
+            for mod in self.modifiers
+            for fac in mod.stat_factors
+            if fac.stat == stat
         )
 
     def increment_modifiers(self) -> None:
