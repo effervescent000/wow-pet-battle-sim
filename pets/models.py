@@ -184,10 +184,10 @@ class PetInstance(Pet):
     @computed_field()
     @property
     def active_skills(self) -> tuple[Ability | None, ...]:
-        from battle_runner import abilities as ab
+        from battle_runner.abilities import AbilityLookup
 
         return tuple(
-            ab.AbilityLookup.get(cast(str, self.species.abilities[i - 1]))
+            AbilityLookup.get(cast(str, self.species.abilities[i - 1]))
             if self.species.abilities[i - 1] is not None
             else None
             for i in self.active_skills_by_location
@@ -201,7 +201,6 @@ class PetInstance(Pet):
 
     @property
     def speed(self) -> float:
-        # TODO include modifiers
         return (
             (self.species.base_stats.speed + get_breed_points(self.breed, "speed") / 10)
             * self.level
@@ -211,7 +210,6 @@ class PetInstance(Pet):
 
     @property
     def power(self) -> float:
-        # TODO include modifiers
         return (
             (self.species.base_stats.power + get_breed_points(self.breed, "power") / 10)
             * self.level
