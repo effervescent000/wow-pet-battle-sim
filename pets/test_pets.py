@@ -30,7 +30,7 @@ def test_pet_ability_logic() -> None:
             base_stats=Stats(health=100, power=100, speed=100),
             abilities=[
                 "Claw",
-                "FakeTestAbility",
+                "FakeTestAbilityNeverUse",
                 "test",
                 "ability",
                 "something",

@@ -12,6 +12,7 @@ class DamageOrHealing(BaseModel):
 
 class EffectChange(BaseModel):
     effect: str
+    target: str
     change: Literal["add", "remove"]
 
 

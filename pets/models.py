@@ -91,7 +91,9 @@ class DamageAbility(Ability):
 
 
 class DamageAbilityWithModifier(DamageAbility):
-    effects: list[Callable[["PetInstance", "PetInstance"], log_models.EffectChange]]
+    effects: list[
+        Callable[["PetInstance", "PetInstance"], log_models.EffectChange | None]
+    ]
 
     def do_action(
         self, actor: "PetInstance", target: "PetInstance"
@@ -99,7 +101,9 @@ class DamageAbilityWithModifier(DamageAbility):
         event = super().do_action(actor, target)
         changes: list[log_models.EffectChange] = []
         for effect in self.effects:
-            changes.append(effect(actor, target))
+            result = effect(actor, target)
+            if result is not None:
+                changes.append(result)
         event.effects = changes
         return event
 
@@ -130,11 +134,16 @@ class PetSpecies(BaseModel):
 
 
 class Pet(BaseModel):
-    label: str | None = None
+    nickname: str | None = None
     breed: Breeds
     level: int
     quality: Quality
     species: PetSpecies
+
+    @computed_field()
+    @property
+    def label(self) -> str:
+        return self.nickname or self.species.name
 
     def __hash__(self) -> int:
         return hash(self.label or (self.breed, self.level, self.species))
@@ -166,7 +175,7 @@ class Pet(BaseModel):
 
     def make_instance(self, active_skills: tuple[int, int, int]) -> "PetInstance":
         return PetInstance(
-            label=self.label,
+            nickname=self.label,
             breed=self.breed,
             level=self.level,
             quality=self.quality,
@@ -254,3 +263,6 @@ class PetInstance(Pet):
             if all(cond(self, target) for cond in x.conditions):
                 return (x, target)
         return (None, None)
+
+    def add_modifier(self, modifier: Modifier) -> None:
+        self.modifiers.append(modifier)
