@@ -272,4 +272,6 @@ class PetInstance(Pet):
         return (None, None)
 
     def add_modifier(self, modifier: Modifier) -> None:
+        if modifier in self.modifiers:
+            self.modifiers.remove(modifier)
         self.modifiers.append(modifier)
