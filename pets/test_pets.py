@@ -1,5 +1,5 @@
-from battle_runner.abilities import AbilityLookup
 from pets.models import PetInstance, PetSpecies, Stats
+from testing.world import AbilityLookup
 
 
 def test_fetch_ability_from_location_key() -> None:
@@ -19,7 +19,7 @@ def test_fetch_ability_from_location_key() -> None:
     assert pet_instance.active_skills == (AbilityLookup.get("Claw"), None, None)
 
 
-def test_pet_ability_logic() -> None:
+def test_pet_ability_logic_basic() -> None:
     pet_instance = PetInstance(
         breed="BB",
         level=1,

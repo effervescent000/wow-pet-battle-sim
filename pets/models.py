@@ -23,7 +23,14 @@ class StatFactor(StatModifier):
     """Used for multipliers"""
 
 
-class Modifier(BaseModel):
+class MinimalModifier(BaseModel):
+    name: str
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, MinimalModifier) and self.name == other.name
+
+
+class Modifier(MinimalModifier):
     name: str
     duration: int
     stat_adjustments: list[StatAdjustment] = []
